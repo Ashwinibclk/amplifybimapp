@@ -1,0 +1,2 @@
+# amplifybimapp
+bi migrator app
