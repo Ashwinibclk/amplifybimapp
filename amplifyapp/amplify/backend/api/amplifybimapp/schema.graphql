@@ -1,0 +1,133 @@
+type Tables @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  datasourceid: ID!
+}
+
+type Files @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  URL: AWSURL!
+}
+
+type Datasource @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  Tables: Tables @hasOne
+}
+
+type Dataset @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  datasource: [ID!]
+  files: [String!]
+  bimprojectID: ID! @index(name: "byBIMProject")
+  Datasource: Datasource @hasOne
+  Files: Files @hasOne
+}
+
+enum BIPlatforms {
+  TABLEAU
+  QUICKSIGHT
+}
+
+type BIMProject @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  Did: ID!
+  Source: BIPlatforms!
+  Destination: BIPlatforms!
+  Datasets: [Dataset] @hasMany(indexName: "byBIMProject", fields: ["id"])
+}
+
+type QsENV @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String
+  qsprojectid: ID
+}
+
+type QsCredentials @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  awsid: ID
+  QsProjects: [QsProject] @hasMany(indexName: "byQsCredentials", fields: ["id"])
+}
+
+type QsDashboard @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String
+  qcTemplateid: ID
+}
+
+type QsAnalysis @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  qcTemplateid: ID
+}
+
+type QsTemplate @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  sourceAnid: ID
+  qsprojectID: ID! @index(name: "byQsProject")
+  QsAnalysis: QsAnalysis @hasOne
+  QCDashboard: QsDashboard @hasOne
+}
+
+type QsProject @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  Did: ID!
+  QsTemplates: [QsTemplate] @hasMany(indexName: "byQsProject", fields: ["id"])
+  QsENV: QsENV @hasOne
+  qscredentialsID: ID! @index(name: "byQsCredentials")
+}
+
+type TableauENV @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  TProjectid: ID!
+}
+
+type TableauCredentials @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  username: AWSEmail!
+  password: String!
+  sitename: AWSURL!
+  TableauProjects: [TableauProject] @hasMany(indexName: "byTableauCredentials", fields: ["id"])
+}
+
+type TableauSheets @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String
+  TWid: String
+  tableauworkbookID: ID! @index(name: "byTableauWorkbook")
+}
+
+type TableauWorkbook @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+  Pid: ID!
+  TableauProject: TableauProject @hasOne
+  TableauSheets: [TableauSheets] @hasMany(indexName: "byTableauWorkbook", fields: ["id"])
+}
+
+type TableauProject @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  Projectname: String!
+  Did: ID
+  Department: Department @hasOne
+  tableaucredentialsID: ID! @index(name: "byTableauCredentials")
+  TableauENV: QsENV @hasOne
+}
+
+type Department @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  Customerid: ID!
+  Dname: String!
+  Customer: Customer @hasOne
+  QuicksightProject: QsProject @hasOne
+  BIMProject: BIMProject @hasOne
+}
+
+type Customer @model @auth(rules: [{allow: public}]) {
+  id: ID!
+  name: String!
+}
